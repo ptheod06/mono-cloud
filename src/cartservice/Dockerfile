@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,29 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
-FROM mcr.microsoft.com/dotnet/sdk:7.0.203@sha256:a06d87abe11238f2fbc076149edfbf91e88f06f54ab9c7282824e346322b8665 as builder
-WORKDIR /app
-COPY cartservice.csproj .
-RUN dotnet restore cartservice.csproj -r linux-musl-x64
+FROM golang:1.20.3-alpine@sha256:48c87cd759e3342fcbc4241533337141e7d8457ec33ab9660abe0a4346c30b60 AS builder
+RUN apk add --no-cache ca-certificates git
+RUN apk add build-base
+
+WORKDIR /src
+# restore dependencies
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN dotnet publish cartservice.csproj -p:PublishSingleFile=true -r linux-musl-x64 --self-contained true -p:PublishTrimmed=True -p:TrimMode=Link -c release -o /cartservice --no-restore
 
-# https://mcr.microsoft.com/v2/dotnet/runtime-deps/tags/list
-FROM mcr.microsoft.com/dotnet/runtime-deps:7.0.4-alpine3.16-amd64@sha256:7141eea9c7be5f4d2f09df427ba37620e50be150fc93015288b3e26c5071af81 as without-grpc-health-probe-bin
+# Skaffold passes in debug-oriented compiler flags
+ARG SKAFFOLD_GO_GCFLAGS
+RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /cartservice .
 
-WORKDIR /app
-COPY --from=builder /cartservice .
+FROM alpine:3.17.3@sha256:124c7d2707904eea7431fffe91522a01e5a861a624ee31d03372cc1d138a3126 AS without-grpc-health-probe-bin
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /src
+COPY --from=builder /cartservice ./cartserver
+
+# Definition of this variable is used by 'skaffold debug' to identify a golang binary.
+# Default behavior - a failure prints a stack trace for the current goroutine.
+# See https://golang.org/pkg/runtime/
+ENV GOTRACEBACK=single
+
 EXPOSE 7070
-ENV DOTNET_EnableDiagnostics=0 \
-    ASPNETCORE_URLS=http://*:7070
-USER 1000
-ENTRYPOINT ["/app/cartservice"]
+ENTRYPOINT ["/src/cartserver"]
 
 FROM without-grpc-health-probe-bin
-USER root
 # renovate: datasource=github-releases depName=grpc-ecosystem/grpc-health-probe
 ENV GRPC_HEALTH_PROBE_VERSION=v0.4.18
 RUN wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
-USER 1000
