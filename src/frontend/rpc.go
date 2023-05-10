@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"time"
+	"fmt"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto"
 
@@ -27,9 +28,9 @@ const (
 	avoidNoopCurrencyConversionRPC = false
 )
 
-func (fe *frontendServer) getCurrencies(ctx context.Context) ([]string, error) {
-	currs, err := pb.NewCurrencyServiceClient(fe.currencySvcConn).
-		GetSupportedCurrencies(ctx, &pb.Empty{})
+func (fe *frontendServer) getCurrencies() ([]string, error) {
+	fmt.Println("Calling all currencies")
+	currs, err := getAllCurrencies()
 	if err != nil {
 		return nil, err
 	}
@@ -74,14 +75,15 @@ func (fe *frontendServer) insertCart(ctx context.Context, userID, productID stri
 	return err
 }
 
-func (fe *frontendServer) convertCurrency(ctx context.Context, money *pb.Money, currency string) (*pb.Money, error) {
+func (fe *frontendServer) convertCurrency(money *pb.Money, currency string) (*pb.Money, error) {
 	if avoidNoopCurrencyConversionRPC && money.GetCurrencyCode() == currency {
 		return money, nil
 	}
-	return pb.NewCurrencyServiceClient(fe.currencySvcConn).
-		Convert(ctx, &pb.CurrencyConversionRequest{
-			From:   money,
-			ToCode: currency})
+
+	return convertCurr(&pb.CurrencyConversionRequest{
+		From:   money,
+		ToCode: currency})
+
 }
 
 func (fe *frontendServer) getShippingQuote(ctx context.Context, items []*pb.CartItem, currency string) (*pb.Money, error) {
@@ -92,7 +94,7 @@ func (fe *frontendServer) getShippingQuote(ctx context.Context, items []*pb.Cart
 	if err != nil {
 		return nil, err
 	}
-	localized, err := fe.convertCurrency(ctx, quote.GetCostUsd(), currency)
+	localized, err := fe.convertCurrency(quote.GetCostUsd(), currency)
 	return localized, errors.Wrap(err, "failed to convert currency for shipping cost")
 }
 
