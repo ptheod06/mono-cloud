@@ -21,6 +21,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"cloud.google.com/go/profiler"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -42,6 +43,7 @@ const (
 	cookiePrefix    = "shop_"
 	cookieSessionID = cookiePrefix + "session-id"
 	cookieCurrency  = cookiePrefix + "currency"
+	redisAddr = "redis-cach:6379"
 )
 
 var (
@@ -53,6 +55,8 @@ var (
 		"GBP": true,
 		"TRY": true}
 )
+
+var rClient *redis.Client
 
 type ctxKeySessionID struct{}
 
@@ -136,6 +140,13 @@ func main() {
 	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr)
 	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr)
 	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
+
+
+	rClient = redis.NewClient(&redis.Options{
+		Addr:	  redisAddr,
+		Password: "", // no password set
+		DB:		  0,  // use default DB
+	})
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", svc.homeHandler).Methods(http.MethodGet, http.MethodHead)
