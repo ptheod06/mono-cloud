@@ -12,9 +12,9 @@ common_cats = []
 
 starttime = datetime.now()
 
-for i in range(0, 6000):
+for i in range(0, 1000):
 	inner_arr = []
-	for j in range(0, 6000):
+	for j in range(0, 1000):
 
 		if i == j:
 			inner_arr.append('na')
@@ -24,7 +24,19 @@ for i in range(0, 6000):
 			set2 = set(parsed[j]['category'])
 			common = set1.intersection(set2)
 			inter_list = list(common)
-			similarity = (len(inter_list) / (math.sqrt(len(parsed[i]['category'])) + math.sqrt(len(parsed[j]['category']))))
+			denominator = math.sqrt(len(parsed[i]['category']) + 3) * math.sqrt(len(parsed[j]['category']) + 3)
+			numerator = len(inter_list)
+			if parsed[i]['price'] == parsed[j]['price']:
+				numerator += 1
+
+			if parsed[i]['type'] == parsed[j]['type']:
+				numerator += 1
+
+			if parsed[i]['manufacturer'] == parsed[j]['manufacturer']:
+				numerator += 1
+
+
+			similarity = numerator / denominator
 			inner_arr.append(similarity)
 
 	common_cats.append(inner_arr)

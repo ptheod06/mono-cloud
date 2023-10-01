@@ -8,5 +8,8 @@ with open('common_categories.json') as fi:
 
 parsed = json.loads(file_content)
 
-print(parsed[0][2])
-print(parsed[2][3])
+for i in range(0, 200):
+	print(i, parsed[123][i])
+
+#print(parsed[0][2])
+#print(parsed[2][3])
