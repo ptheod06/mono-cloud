@@ -14,7 +14,7 @@ starttime = datetime.now()
 
 for i in range(0, 1000):
 	inner_arr = []
-	for j in range(0, 1000):
+	for j in range(0, 8000):
 
 		if i == j:
 			inner_arr.append('na')
@@ -31,11 +31,13 @@ for i in range(0, 1000):
 
 			if parsed[i]['type'] == parsed[j]['type']:
 				numerator += 1
-
-			if parsed[i]['manufacturer'] == parsed[j]['manufacturer']:
-				numerator += 1
-
-
+			try:
+				if parsed[i]['manufacturer'] == parsed[j]['manufacturer']:
+					numerator += 1
+			except:
+				print(parsed[i])
+				print(parsed[j])
+				exit()
 			similarity = numerator / denominator
 			inner_arr.append(similarity)
 
