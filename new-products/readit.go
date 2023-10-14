@@ -5,6 +5,7 @@ import 	(
 	"fmt"
 	"io/ioutil"
 	"math"
+	"time"
 )
 
 
@@ -38,30 +39,33 @@ func intersection(arr1, arr2 []string) []string {
 func main() {
 
 	var products []Product
-	var similarities [][]float64
+	var similarities [][]float32
 
-	fmt.Println(similarities)
+	//fmt.Println(similarities)
 
-	myfile, _ := ioutil.ReadFile("first_products.json")
+	myfile, _ := ioutil.ReadFile("final_products.json")
 	json.Unmarshal(myfile, &products)
 
-	fmt.Println(intersection(products[0].Category, products[1].Category))
+	//fmt.Println(intersection(products[0].Category, products[1].Category))
 
 //	fmt.Println(products[0].Category)
 
-	for i := 0; i < len(products); i++ {
+	before := time.Now()
 
-		var inner_arr []float64
+	for i := 0; i < 10000; i++ {
 
-		for j:= 0; j < len(products); j++ {
+		var inner_arr []float32
+
+
+		for j:= 0; j < 10000; j++ {
 			if i == j {
+				inner_arr = append(inner_arr, -1.0)
 				continue
 			}
 
 			numerator := len(intersection(products[i].Category, products[j].Category))
-			denominator := 0.0
 
-			denominator = math.Sqrt(float64(len(products[i].Category) + 3)) * math.Sqrt(float64(len(products[j].Category) + 3))
+			denominator := float32(math.Sqrt(float64(len(products[i].Category) + 3)) * math.Sqrt(float64(len(products[j].Category) + 3)))
 
 			if products[i].Price == products[j].Price {
 				numerator += 1
@@ -75,7 +79,7 @@ func main() {
                                 numerator += 1
                         }
 
-			similarity := float64(numerator) / denominator
+			similarity := float32(numerator) / denominator
 			inner_arr = append(inner_arr, similarity)
 		}
 
@@ -83,5 +87,14 @@ func main() {
 
 	}
 
-	fmt.Println(similarities)
+	after := time.Since(before)
+
+	fmt.Println(after)
+
+//	file_content, _ := json.Marshal(similarities)
+//	err := ioutil.WriteFile("output.json", file_content, 0644)
+//	if err != nil {
+//		fmt.Println("oops")
+//	}
+	//fmt.Println(similarities)
 }
