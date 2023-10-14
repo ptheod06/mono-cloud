@@ -11,7 +11,7 @@ parsed = json.loads(file_content)
 cleaned = []
 
 cleaned.append(parsed[0])
-cleaned.append(parsed[15])
+cleaned.append(parsed[5])
 cleaned.append(parsed[25])
 
 
