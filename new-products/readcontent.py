@@ -9,5 +9,5 @@ with open('final_products.json') as fi:
 parsed = json.loads(file_content)
 
 
-print(parsed[99])
-print(parsed[123])
+print(parsed[0])
+print(parsed[15])

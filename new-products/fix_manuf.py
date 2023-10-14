@@ -1,7 +1,7 @@
 import json
 
 
-with open('new_products.json') as fi:
+with open('products.json') as fi:
 	file_content = fi.read()
 
 parsed = json.loads(file_content)
@@ -13,7 +13,7 @@ for item in parsed:
 		item['manufacturer'] = 'unknown'
 
 
-with open('last_products.json', 'w') as fo:
+with open('fixmanu_products.json', 'w') as fo:
 	json.dump(parsed, fo)
 
 print('done')
