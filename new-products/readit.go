@@ -20,6 +20,14 @@ type Product struct {
 	Type string
 }
 
+type ProductComp struct {
+
+	Sku string
+	Similarity float64
+	Index int
+	With int
+}
+
 func intersection(arr1, arr2 []string) []string {
 
 	commons := []string{}
@@ -41,7 +49,8 @@ func main() {
 
 	var products []Product
 	var similarities [][]float64
-	var topSimilarities [][]float64
+	var topSimilarities [][]ProductComp
+	//var similarSKU [][]string
 	//fmt.Println(similarities)
 
 	myfile, _ := ioutil.ReadFile("final_products.json")
@@ -53,12 +62,12 @@ func main() {
 
 	before := time.Now()
 
-	for i := 0; i < 15; i++ {
+	for i := 0; i < 100; i++ {
 
 		var inner_arr []float64
 
 
-		for j:= 0; j < 15; j++ {
+		for j:= 0; j < 100; j++ {
 			if i == j {
 				inner_arr = append(inner_arr, -1.0)
 				continue
@@ -89,19 +98,21 @@ func main() {
 	}
 
 
-	for _, arrays := range similarities {
+	for index, arrays := range similarities {
 
-		var mostSimilar = []float64{}
+		var mostSimilar = []ProductComp{}
 
 		for i := 0; i < 3; i++ {
-			mostSimilar = append(mostSimilar, arrays[i])
+			prod := ProductComp{products[i].Sku, arrays[i], index, i}
+			mostSimilar = append(mostSimilar, prod)
 		}
 
-		sort.Float64s(mostSimilar)
+		sort.Slice(mostSimilar, func(i, j int) bool { return mostSimilar[i].Similarity < mostSimilar[j].Similarity})
 		for _, item := range arrays {
-			if (mostSimilar[0] < item) {
-				mostSimilar[0] = item
-				sort.Float64s(mostSimilar)
+			if (mostSimilar[0].Similarity < item) {
+				prodNew := ProductComp{products[i].Sku, arrays[i], index, i}
+				mostSimilar[0] = prodNew
+				sort.Slice(mostSimilar, func(i, j int) bool { return mostSimilar[i].Similarity < mostSimilar[j].Similarity })
 			}
 
 		}
@@ -115,10 +126,15 @@ func main() {
 
 //	fmt.Println(topSimilarities)
 
-	file_content, _ := json.MarshalIndent(topSimilarities, "", " ")
+	file_content, _ := json.Marshal(similarities)
 	err := ioutil.WriteFile("output.json", file_content, 0644)
 	if err != nil {
 		fmt.Println("oops")
 	}
 //	fmt.Println(similarities)
+
+
+	//mine := ProductComp{"aaaww", 12.33, 1}
+	//fmt.Println(mine)
+
 }
