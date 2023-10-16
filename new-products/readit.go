@@ -6,6 +6,7 @@ import 	(
 	"io/ioutil"
 	"math"
 	"time"
+	"sort"
 )
 
 
@@ -39,8 +40,8 @@ func intersection(arr1, arr2 []string) []string {
 func main() {
 
 	var products []Product
-	var similarities [][]float32
-
+	var similarities [][]float64
+	var topSimilarities [][]float64
 	//fmt.Println(similarities)
 
 	myfile, _ := ioutil.ReadFile("final_products.json")
@@ -52,12 +53,12 @@ func main() {
 
 	before := time.Now()
 
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 15; i++ {
 
-		var inner_arr []float32
+		var inner_arr []float64
 
 
-		for j:= 0; j < 10000; j++ {
+		for j:= 0; j < 15; j++ {
 			if i == j {
 				inner_arr = append(inner_arr, -1.0)
 				continue
@@ -65,7 +66,7 @@ func main() {
 
 			numerator := len(intersection(products[i].Category, products[j].Category))
 
-			denominator := float32(math.Sqrt(float64(len(products[i].Category) + 3)) * math.Sqrt(float64(len(products[j].Category) + 3)))
+			denominator := math.Sqrt(float64(len(products[i].Category) + 3)) * math.Sqrt(float64(len(products[j].Category) + 3))
 
 			if products[i].Price == products[j].Price {
 				numerator += 1
@@ -79,7 +80,7 @@ func main() {
                                 numerator += 1
                         }
 
-			similarity := float32(numerator) / denominator
+			similarity := float64(numerator) / denominator
 			inner_arr = append(inner_arr, similarity)
 		}
 
@@ -87,14 +88,37 @@ func main() {
 
 	}
 
+
+	for _, arrays := range similarities {
+
+		var mostSimilar = []float64{}
+
+		for i := 0; i < 3; i++ {
+			mostSimilar = append(mostSimilar, arrays[i])
+		}
+
+		sort.Float64s(mostSimilar)
+		for _, item := range arrays {
+			if (mostSimilar[0] < item) {
+				mostSimilar[0] = item
+				sort.Float64s(mostSimilar)
+			}
+
+		}
+
+		topSimilarities = append(topSimilarities, mostSimilar)
+	}
+
 	after := time.Since(before)
 
 	fmt.Println(after)
 
-//	file_content, _ := json.Marshal(similarities)
-//	err := ioutil.WriteFile("output.json", file_content, 0644)
-//	if err != nil {
-//		fmt.Println("oops")
-//	}
-	//fmt.Println(similarities)
+//	fmt.Println(topSimilarities)
+
+	file_content, _ := json.MarshalIndent(topSimilarities, "", " ")
+	err := ioutil.WriteFile("output.json", file_content, 0644)
+	if err != nil {
+		fmt.Println("oops")
+	}
+//	fmt.Println(similarities)
 }
