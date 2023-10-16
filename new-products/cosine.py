@@ -3,7 +3,7 @@ from datetime import datetime
 import math
 
 
-with open('cleaned_products.json') as fi:
+with open('final_products.json') as fi:
         file_content = fi.read()
 
 parsed = json.loads(file_content)
@@ -12,12 +12,12 @@ common_cats = []
 
 starttime = datetime.now()
 
-for i in range(0, 1000):
+for i in range(0, 15):
 	inner_arr = []
-	for j in range(0, 8000):
+	for j in range(0, 15):
 
 		if i == j:
-			inner_arr.append('na')
+			inner_arr.append(-1)
 			continue
 		else:
 			set1 = set(parsed[i]['category'])
@@ -46,7 +46,7 @@ for i in range(0, 1000):
 endtime = datetime.now()
 
 with open('common_categories.json', 'w') as fo:
-	json.dump(common_cats, fo)
+	json.dump(common_cats, fo, indent=2)
 
 print(endtime - starttime)
 print('done')
