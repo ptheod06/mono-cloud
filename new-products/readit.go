@@ -22,10 +22,8 @@ type Product struct {
 
 type ProductComp struct {
 
-	Sku string
+	Item int
 	Similarity float64
-	Index int
-	With int
 }
 
 func intersection(arr1, arr2 []string) []string {
@@ -62,12 +60,12 @@ func main() {
 
 	before := time.Now()
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 
 		var inner_arr []float64
 
 
-		for j:= 0; j < 100; j++ {
+		for j:= 0; j < 1000; j++ {
 			if i == j {
 				inner_arr = append(inner_arr, -1.0)
 				continue
@@ -98,19 +96,19 @@ func main() {
 	}
 
 
-	for index, arrays := range similarities {
+	for _, arrays := range similarities {
 
 		var mostSimilar = []ProductComp{}
 
 		for i := 0; i < 3; i++ {
-			prod := ProductComp{products[i].Sku, arrays[i], index, i}
+			prod := ProductComp{i, arrays[i]}
 			mostSimilar = append(mostSimilar, prod)
 		}
 
 		sort.Slice(mostSimilar, func(i, j int) bool { return mostSimilar[i].Similarity < mostSimilar[j].Similarity})
-		for _, item := range arrays {
-			if (mostSimilar[0].Similarity < item) {
-				prodNew := ProductComp{products[i].Sku, arrays[i], index, i}
+		for i := 4; i < len(arrays); i++ {
+			if (mostSimilar[0].Similarity < arrays[i]) {
+				prodNew := ProductComp{i, arrays[i]}
 				mostSimilar[0] = prodNew
 				sort.Slice(mostSimilar, func(i, j int) bool { return mostSimilar[i].Similarity < mostSimilar[j].Similarity })
 			}
@@ -126,7 +124,7 @@ func main() {
 
 //	fmt.Println(topSimilarities)
 
-	file_content, _ := json.Marshal(similarities)
+	file_content, _ := json.MarshalIndent(topSimilarities, "", " ")
 	err := ioutil.WriteFile("output.json", file_content, 0644)
 	if err != nil {
 		fmt.Println("oops")
@@ -136,5 +134,15 @@ func main() {
 
 	//mine := ProductComp{"aaaww", 12.33, 1}
 	//fmt.Println(mine)
+
+//	for i := 0; i < 50; i++ {
+
+//		fmt.Println("Comparing item: ", products[i])
+//		for _, prod := range topSimilarities[i] {
+//			fmt.Println(products[prod.Item], prod.Similarity)
+//		}
+//		fmt.Println()
+//	}
+
 
 }
