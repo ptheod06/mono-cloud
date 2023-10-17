@@ -26,6 +26,18 @@ type ProductComp struct {
 	Similarity float64
 }
 
+type ProdOut struct {
+
+	Sku int
+	Similarity float64
+}
+
+type SimProducts struct {
+
+	Sku int
+	SimilarProducts []ProdOut
+}
+
 func intersection(arr1, arr2 []string) []string {
 
 	commons := []string{}
@@ -58,14 +70,20 @@ func main() {
 
 //	fmt.Println(products[0].Category)
 
+
+//	for i := 0; i < 10; i++ {
+
+//		fmt.Println(products[i])
+//	}
+
 	before := time.Now()
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 5000; i++ {
 
 		var inner_arr []float64
 
 
-		for j:= 0; j < 1000; j++ {
+		for j:= 0; j < 5000; j++ {
 			if i == j {
 				inner_arr = append(inner_arr, -1.0)
 				continue
@@ -124,7 +142,22 @@ func main() {
 
 //	fmt.Println(topSimilarities)
 
-	file_content, _ := json.MarshalIndent(topSimilarities, "", " ")
+
+	var allSimilarities = []SimProducts{}
+
+	for i := 0; i < 5000; i++ {
+		var currSimilarities = []ProdOut{}
+
+		for _, item := range topSimilarities[i] {
+
+			currSimilarities = append(currSimilarities, ProdOut{products[item.Item].Sku, item.Similarity})
+		}
+
+		allSimilarities = append(allSimilarities, SimProducts{products[i].Sku, currSimilarities})
+
+	}
+
+	file_content, _ := json.MarshalIndent(allSimilarities, "", " ")
 	err := ioutil.WriteFile("output.json", file_content, 0644)
 	if err != nil {
 		fmt.Println("oops")
