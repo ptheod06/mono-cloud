@@ -15,6 +15,8 @@ for item in parsed:
 	simple_item['name'] = item['name']
 	simple_item['type'] = item['type']
 	simple_item['price'] = item['price']
+	simple_item['description'] = item['description']
+	simple_item['image'] = item['image']
 	simple_item['manufacturer'] = item['manufacturer']
 
 	category_names = []

@@ -60,8 +60,7 @@ func main() {
 	var products []Product
 	var similarities [][]float64
 	var topSimilarities [][]ProductComp
-	//var similarSKU [][]string
-	//fmt.Println(similarities)
+
 
 	myfile, _ := ioutil.ReadFile("final_products.json")
 	json.Unmarshal(myfile, &products)
@@ -78,12 +77,12 @@ func main() {
 
 	before := time.Now()
 
-	for i := 0; i < 5000; i++ {
+	for i := 0; i < 15000; i++ {
 
 		var inner_arr []float64
 
 
-		for j:= 0; j < 5000; j++ {
+		for j:= 0; j < 15000; j++ {
 			if i == j {
 				inner_arr = append(inner_arr, -1.0)
 				continue
@@ -118,13 +117,13 @@ func main() {
 
 		var mostSimilar = []ProductComp{}
 
-		for i := 0; i < 3; i++ {
+		for i := 0; i < 5; i++ {
 			prod := ProductComp{i, arrays[i]}
 			mostSimilar = append(mostSimilar, prod)
 		}
 
 		sort.Slice(mostSimilar, func(i, j int) bool { return mostSimilar[i].Similarity < mostSimilar[j].Similarity})
-		for i := 4; i < len(arrays); i++ {
+		for i := 5; i < len(arrays); i++ {
 			if (mostSimilar[0].Similarity < arrays[i]) {
 				prodNew := ProductComp{i, arrays[i]}
 				mostSimilar[0] = prodNew
@@ -145,7 +144,7 @@ func main() {
 
 	var allSimilarities = []SimProducts{}
 
-	for i := 0; i < 5000; i++ {
+	for i := 0; i < 15000; i++ {
 		var currSimilarities = []ProdOut{}
 
 		for _, item := range topSimilarities[i] {
