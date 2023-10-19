@@ -4,10 +4,15 @@ import 	(
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"time"
-	"sort"
+	"math"
+	"strconv"
 )
 
+
+type FinalOut struct {
+	Products []outProduct `json:"products"`
+
+}
 
 type Product struct {
 	Name string
@@ -16,6 +21,8 @@ type Product struct {
 	Category []string
 	Manufacturer string
 	Type string
+	Description string
+	Image string
 }
 
 type Currency struct {
@@ -39,14 +46,25 @@ func main() {
 	var products []Product
 	var output []outProduct
 
-	myfile, _ := ioutil.ReadFile("final_products.json")
+	myfile, _ := ioutil.ReadFile("cleaned_products.json")
 	json.Unmarshal(myfile, &products)
 
-	for i := 0; i < 15; i++ {
+	for i := 0; i < len(products); i++ {
 
-		output = append(output, outProduct{products[i].Sku, products[i].Name, "", })
+		units := int(math.Trunc(float64(products[0].Price)))
+	        nanos := int(products[0].Price * 100) % 100 * 10000000
+
+		output = append(output, outProduct{strconv.Itoa(products[i].Sku), products[i].Name, products[i].Description, products[i].Image, Currency{"USD", units, nanos}, products[i].Category})
 
 	}
 
+	Outputfinal := FinalOut{output}
+
+
+	file_content, _ := json.MarshalIndent(Outputfinal, "", " ")
+	err := ioutil.WriteFile("newwproducts.json", file_content, 0644)
+	if err != nil {
+		fmt.Println("oops")
+	}
 
 }
