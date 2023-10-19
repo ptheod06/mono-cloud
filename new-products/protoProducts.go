@@ -49,7 +49,7 @@ func main() {
 	myfile, _ := ioutil.ReadFile("cleaned_products.json")
 	json.Unmarshal(myfile, &products)
 
-	for i := 0; i < len(products); i++ {
+	for i := 0; i < 15000; i++ {
 
 		units := int(math.Trunc(float64(products[i].Price)))
 	        nanos := int(products[i].Price * 100) % 100 * 10000000
