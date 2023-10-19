@@ -9,4 +9,4 @@ with open('cleaned_products.json') as fi:
 parsed = json.loads(file_content)
 
 
-print(parsed[0])
+print(parsed[100])

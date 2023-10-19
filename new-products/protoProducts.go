@@ -51,8 +51,8 @@ func main() {
 
 	for i := 0; i < len(products); i++ {
 
-		units := int(math.Trunc(float64(products[0].Price)))
-	        nanos := int(products[0].Price * 100) % 100 * 10000000
+		units := int(math.Trunc(float64(products[i].Price)))
+	        nanos := int(products[i].Price * 100) % 100 * 10000000
 
 		output = append(output, outProduct{strconv.Itoa(products[i].Sku), products[i].Name, products[i].Description, products[i].Image, Currency{"USD", units, nanos}, products[i].Category})
 
@@ -62,7 +62,7 @@ func main() {
 
 
 	file_content, _ := json.MarshalIndent(Outputfinal, "", " ")
-	err := ioutil.WriteFile("newwproducts.json", file_content, 0644)
+	err := ioutil.WriteFile("bestBuyProducts.json", file_content, 0644)
 	if err != nil {
 		fmt.Println("oops")
 	}
