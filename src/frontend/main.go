@@ -126,6 +126,7 @@ func main() {
                 log.Warnf("could not parse products catalog")
         }
 
+	go calculateSimilarities(&prods)
 
 	if err != nil {
 		log.Warnf("could not parse product catalog")
