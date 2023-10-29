@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"io"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -177,7 +178,7 @@ func (fe *frontendServer) productHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// ignores the error retrieving recommendations since it is not critical
-	recommendations, err := fe.getRecommendations(r.Context(), sessionID(r), []string{id})
+	recommendations, err := fe.getRecommendations(sessionID(r), []string{id})
 	if err != nil {
 		log.WithField("error", err).Warn("failed to get product recommendations")
 	}
@@ -204,6 +205,54 @@ func (fe *frontendServer) productHandler(w http.ResponseWriter, r *http.Request)
 	}); err != nil {
 		log.Println(err)
 	}
+}
+
+
+func (fe *frontendServer) newProductHandler(w http.ResponseWriter, r *http.Request) {
+	neededParams := []string{"id", "name", "description", "picture", "units", "nanos", "categories", "type", "manufacturer"}
+	r.ParseForm()
+	missingParam := false
+
+	for _, param := range neededParams {
+		val, ok := r.Form[param];
+		if !ok {
+			missingParam = true
+                        break
+		} else {
+			if val[0] == "" {
+				missingParam = true
+	                        break
+
+			}
+		}
+	}
+
+
+	if (missingParam) {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	units, _ := strconv.ParseInt(r.Form["units"][0], 10, 64)
+	nanos, _ := strconv.ParseInt(r.Form["nanos"][0], 10, 32)
+	log.Info(nanos)
+	log.Info(int32(nanos))
+	amount := &pb.Money{CurrencyCode: "USD", Units: units, Nanos: int32(nanos)*10000000}
+
+	categories := strings.Split(r.Form["categories"][0], ",")
+
+	err := fe.addProduct(amount, r.Form["id"][0], r.Form["name"][0], r.Form["description"][0], r.Form["picture"][0], categories, r.Form["type"][0], r.Form["manufacturer"][0])
+
+	if err != nil {
+		log.Info("error occured")
+		io.WriteString(w, fmt.Sprintf("Product with id %s already exists", r.Form["id"][0]))
+        	w.WriteHeader(http.StatusAlreadyReported)
+		return
+	}
+
+	io.WriteString(w, fmt.Sprintf("Product with id %s added successfully", r.Form["id"][0]))
+        w.WriteHeader(http.StatusOK)
+
 }
 
 func (fe *frontendServer) addToCartHandler(w http.ResponseWriter, r *http.Request) {
@@ -257,12 +306,12 @@ func (fe *frontendServer) viewCartHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// ignores the error retrieving recommendations since it is not critical
-	recommendations, err := fe.getRecommendations(r.Context(), sessionID(r), cartIDs(cart))
+	recommendations, err := fe.getRecommendations(sessionID(r), cartIDs(cart))
 	if err != nil {
 		log.WithField("error", err).Warn("failed to get product recommendations")
 	}
 
-	shippingCost, err := fe.getShippingQuote(r.Context(), cart, currentCurrency(r))
+	shippingCost, err := fe.getShippingQuote(cart, currentCurrency(r))
 	if err != nil {
 		renderHTTPError(log, r, w, errors.Wrap(err, "failed to get shipping quote"), http.StatusInternalServerError)
 		return
@@ -359,7 +408,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 	log.WithField("order", order.GetOrder().GetOrderId()).Info("order placed")
 
 	order.GetOrder().GetItems()
-	recommendations, _ := fe.getRecommendations(r.Context(), sessionID(r), nil)
+	recommendations, _ := fe.getRecommendations(sessionID(r), nil)
 
 	totalPaid := *order.GetOrder().GetShippingCost()
 	for _, v := range order.GetOrder().GetItems() {

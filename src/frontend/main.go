@@ -62,14 +62,8 @@ var rClient *redis.Client
 type ctxKeySessionID struct{}
 
 type frontendServer struct {
-	recommendationSvcAddr string
-	recommendationSvcConn *grpc.ClientConn
-
 	checkoutSvcAddr string
 	checkoutSvcConn *grpc.ClientConn
-
-	shippingSvcAddr string
-	shippingSvcConn *grpc.ClientConn
 
 	adSvcAddr string
 	adSvcConn *grpc.ClientConn
@@ -117,19 +111,21 @@ func main() {
 		srvPort = os.Getenv("PORT")
 	}
 	addr := os.Getenv("LISTEN_ADDR")
-	mustMapEnv(&svc.recommendationSvcAddr, "RECOMMENDATION_SERVICE_ADDR")
 	mustMapEnv(&svc.checkoutSvcAddr, "CHECKOUT_SERVICE_ADDR")
-	mustMapEnv(&svc.shippingSvcAddr, "SHIPPING_SERVICE_ADDR")
 	mustMapEnv(&svc.adSvcAddr, "AD_SERVICE_ADDR")
 
-	mustConnGRPC(ctx, &svc.recommendationSvcConn, svc.recommendationSvcAddr)
-	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr)
 	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr)
 	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
 
 
 	catalogMutex = &sync.Mutex{}
 	err := readCatalogFile(&cat)
+
+	prodErr := readProducts(&products)
+	if prodErr != nil {
+                log.Warnf("could not parse products catalog")
+        }
+
 
 	if err != nil {
 		log.Warnf("could not parse product catalog")
@@ -144,6 +140,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", svc.homeHandler).Methods(http.MethodGet, http.MethodHead)
 	r.HandleFunc("/product/{id}", svc.productHandler).Methods(http.MethodGet, http.MethodHead)
+	r.HandleFunc("/newproduct", svc.newProductHandler).Methods(http.MethodPost)
 	r.HandleFunc("/cart", svc.viewCartHandler).Methods(http.MethodGet, http.MethodHead)
 	r.HandleFunc("/cart", svc.addToCartHandler).Methods(http.MethodPost)
 	r.HandleFunc("/cart/empty", svc.emptyCartHandler).Methods(http.MethodPost)

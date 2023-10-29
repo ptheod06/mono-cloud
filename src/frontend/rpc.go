@@ -54,6 +54,28 @@ func (fe *frontendServer) getProduct(id string) (*pb.Product, error) {
 	return resp, err
 }
 
+
+func (fe *frontendServer) addProduct(money *pb.Money, id, name, desc, img string, categories []string, prodType, manufacturer string) error {
+
+
+	mon := &pb.ProductNew{Id: id,
+                        Name: name,
+                        Description: desc,
+                        Picture: img,
+                        PriceUsd: money,
+                        Categories: categories,
+			Type: prodType,
+			Manufacturer: manufacturer}
+
+
+	err := AddNewProduct(mon)
+
+	if (err != nil) {
+		return err
+	}
+	return nil
+}
+
 func (fe *frontendServer) getCart(userID string) ([]*pb.CartItem, error) {
 	fmt.Println("get cart from mono requested!")
 	resp, err := GetCart(&pb.GetCartRequest{UserId: userID})
@@ -86,11 +108,11 @@ func (fe *frontendServer) convertCurrency(money *pb.Money, currency string) (*pb
 
 }
 
-func (fe *frontendServer) getShippingQuote(ctx context.Context, items []*pb.CartItem, currency string) (*pb.Money, error) {
-	quote, err := pb.NewShippingServiceClient(fe.shippingSvcConn).GetQuote(ctx,
-		&pb.GetQuoteRequest{
-			Address: nil,
-			Items:   items})
+func (fe *frontendServer) getShippingQuote(items []*pb.CartItem, currency string) (*pb.Money, error) {
+	quote, err := GetQuote(&pb.GetQuoteRequest{
+                        Address: nil,
+                        Items:   items})
+
 	if err != nil {
 		return nil, err
 	}
@@ -98,9 +120,8 @@ func (fe *frontendServer) getShippingQuote(ctx context.Context, items []*pb.Cart
 	return localized, errors.Wrap(err, "failed to convert currency for shipping cost")
 }
 
-func (fe *frontendServer) getRecommendations(ctx context.Context, userID string, productIDs []string) ([]*pb.Product, error) {
-	resp, err := pb.NewRecommendationServiceClient(fe.recommendationSvcConn).ListRecommendations(ctx,
-		&pb.ListRecommendationsRequest{UserId: userID, ProductIds: productIDs})
+func (fe *frontendServer) getRecommendations(userID string, productIDs []string) ([]*pb.Product, error) {
+	resp, err := ListRecommendations(&pb.ListRecommendationsRequest{UserId: userID, ProductIds: productIDs})
 	if err != nil {
 		return nil, err
 	}

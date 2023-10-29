@@ -154,7 +154,7 @@ func SearchProducts(req *pb.SearchProductsRequest) (*pb.SearchProductsResponse, 
 }
 
 
-func AddNewProduct(req *pb.ProductNew) (*pb.Empty, error) {
+func AddNewProduct(req *pb.ProductNew) (error) {
 	var found bool
 	found = false
 
@@ -186,7 +186,7 @@ func AddNewProduct(req *pb.ProductNew) (*pb.Empty, error) {
 
         if found == true {
 		log.Info("Product already exists")
-                return nil, status.Errorf(codes.NotFound, "product with ID %s already exists!", req.Id)
+                return status.Errorf(codes.NotFound, "product with ID %s already exists!", req.Id)
         }
 
 	freshProd := &pb.Product{Id: req.Id,
@@ -203,10 +203,10 @@ func AddNewProduct(req *pb.ProductNew) (*pb.Empty, error) {
 		log.Info("product added successfully")
         }
 
-//	strSku, _ := strconv.Atoi(req.Id)
-	
-/*
-	err = sendMsgToQueue(Product{
+	strSku, _ := strconv.Atoi(req.Id)
+
+
+	err = addNewRecommendation(Product{
 		Sku: strSku,
 		Price: float32(req.PriceUsd.Units),
 		Name: req.Name,
@@ -215,18 +215,17 @@ func AddNewProduct(req *pb.ProductNew) (*pb.Empty, error) {
 		Type: req.Type})
 
 	if (err != nil) {
-
+		//Change this for monolith implementation
 		log.Info("Message failed to be send to RabbitMQ")
-		return nil, err
+		return err
 	} else {
 
 		log.Info("Message sent to RabbitMQ successfully")
 	}
 
-*/
 
 	log.Info(fmt.Sprintf("%+v", req))
 
-	return &pb.Empty{}, nil
+	return nil
 }
 
