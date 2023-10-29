@@ -43,15 +43,14 @@ func (fe *frontendServer) getCurrencies() ([]string, error) {
 	return out, nil
 }
 
-func (fe *frontendServer) getProducts(ctx context.Context) ([]*pb.Product, error) {
-	resp, err := pb.NewProductCatalogServiceClient(fe.productCatalogSvcConn).
-		ListProducts(ctx, &pb.Empty{})
+func (fe *frontendServer) getProducts() ([]*pb.Product, error) {
+	resp, err := ListProducts(&pb.Empty{})
 	return resp.GetProducts(), err
 }
 
-func (fe *frontendServer) getProduct(ctx context.Context, id string) (*pb.Product, error) {
-	resp, err := pb.NewProductCatalogServiceClient(fe.productCatalogSvcConn).
-		GetProduct(ctx, &pb.GetProductRequest{Id: id})
+func (fe *frontendServer) getProduct(id string) (*pb.Product, error) {
+	resp, err := GetProduct(&pb.GetProductRequest{Id: id})
+
 	return resp, err
 }
 
@@ -107,7 +106,7 @@ func (fe *frontendServer) getRecommendations(ctx context.Context, userID string,
 	}
 	out := make([]*pb.Product, len(resp.GetProductIds()))
 	for i, v := range resp.GetProductIds() {
-		p, err := fe.getProduct(ctx, v)
+		p, err := fe.getProduct(v)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get recommended product info (#%s)", v)
 		}
