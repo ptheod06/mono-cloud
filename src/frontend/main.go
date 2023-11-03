@@ -62,9 +62,6 @@ var rClient *redis.Client
 type ctxKeySessionID struct{}
 
 type frontendServer struct {
-	checkoutSvcAddr string
-	checkoutSvcConn *grpc.ClientConn
-
 	adSvcAddr string
 	adSvcConn *grpc.ClientConn
 
@@ -111,10 +108,8 @@ func main() {
 		srvPort = os.Getenv("PORT")
 	}
 	addr := os.Getenv("LISTEN_ADDR")
-	mustMapEnv(&svc.checkoutSvcAddr, "CHECKOUT_SERVICE_ADDR")
 	mustMapEnv(&svc.adSvcAddr, "AD_SERVICE_ADDR")
 
-	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr)
 	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
 
 
