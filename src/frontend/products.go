@@ -6,13 +6,19 @@ import (
 //	"encoding/json"
 	"strconv"
 	"strings"
-	"sort"
+//	"sort"
 	"math/rand"
 	"sync"
 	"bytes"
+	"context"
 //	"time"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto"
+
+	"go.mongodb.org/mongo-driver/mongo"
+        "go.mongodb.org/mongo-driver/mongo/options"
+//        "go.mongodb.org/mongo-driver/mongo/readpref"
+        "go.mongodb.org/mongo-driver/bson"
 
 	"github.com/golang/protobuf/jsonpb"
 	"google.golang.org/grpc/codes"
@@ -49,23 +55,43 @@ func readCatalogFile(catalog *pb.ListProductsResponse) error {
 	}
 
 
-	sort.Slice(catalog.Products, func(i, j int) bool { 
-		firstVal, _ := strconv.Atoi(catalog.Products[i].Id)
-		secondVal, _ := strconv.Atoi(catalog.Products[j].Id)
-		return firstVal < secondVal })
 
-	isSorted := sort.SliceIsSorted(catalog.Products, func (i, j int) bool {
-		firstVal, _ := strconv.Atoi(catalog.Products[i].Id)
-                secondVal, _ := strconv.Atoi(catalog.Products[j].Id)
-                return firstVal < secondVal })
+	var dbProducts []interface{}
 
-	if (isSorted) {
-		log.Info("Sorted Successfully")
-	} else {
-		log.Info("Sort did not work!!!!")
+
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://mongodb:27017"))
+        if err != nil {
+                panic(err)
+        }
+
+	log.Info("Connected to MongoDB")
+
+	mongoConn = client
+
+	dbprods := mongoConn.Database("mydb").Collection("products")
+
+	indexModel := mongo.IndexModel{
+	    Keys: bson.D{{"id", 1}}}
+
+
+	for _, item := range catalog.Products {
+		dbProducts = append(dbProducts, item)
 	}
 
-	log.Info("successfully parsed product catalog json")
+	_, err = dbprods.InsertMany(context.TODO(), dbProducts)
+
+	if err != nil {
+        	panic(err)
+	}
+
+	_, err = dbprods.Indexes().CreateOne(context.TODO(), indexModel)
+        if err != nil {
+                panic(err)
+        }
+
+	log.Info("successfully inserted products to MongoDB")
+
+
 	return nil
 }
 
@@ -109,7 +135,7 @@ func ListProducts(*pb.Empty) (*pb.ListProductsResponse, error) {
 
 func GetProduct(req *pb.GetProductRequest) (*pb.Product, error) {
 //	time.Sleep(extraLatency)
-	var found *pb.Product
+	var found pb.Product
 
 //	for i := 0; i < len(parseCatalog()); i++ {
 //		if req.Id == parseCatalog()[i].Id {
@@ -117,26 +143,20 @@ func GetProduct(req *pb.GetProductRequest) (*pb.Product, error) {
 //		}
 //	}
 
-	i := sort.Search(len(parseCatalog()), func (ind int) bool {
-		firstVal, _ := strconv.Atoi(parseCatalog()[ind].Id)
-		secondVal, _ := strconv.Atoi(req.Id)
-		return firstVal >= secondVal })
 
-	if (i < len(parseCatalog()) && parseCatalog()[i].Id == req.Id) {
 
-//		log.Info(fmt.Sprintf("Found at index: %d", i))
-		found = parseCatalog()[i]
-	} else {
+	dbprods := mongoConn.Database("mydb").Collection("products")
 
-//		log.Info("Product Not Found")
-//		log.Info(fmt.Sprintf("index: %d", i))
+	err := dbprods.FindOne(context.TODO(), bson.D{{"id", req.Id}}).Decode(&found)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, status.Errorf(codes.NotFound, "no product with ID %s", req.Id)
+		}
 	}
 
 
-	if found == nil {
-		return nil, status.Errorf(codes.NotFound, "no product with ID %s", req.Id)
-	}
-	return found, nil
+	return &found, nil
 }
 
 
@@ -158,6 +178,9 @@ func AddNewProduct(req *pb.ProductNew) (error) {
 	var found bool
 	found = false
 
+
+	var foundProd pb.Product
+
 //	log.Info(fmt.Sprintf("+%v", req))
 
 //	for i := 0; i < len(parseCatalog()); i++ {
@@ -168,21 +191,22 @@ func AddNewProduct(req *pb.ProductNew) (error) {
 //        }
 
 
-	i := sort.Search(len(parseCatalog()), func (ind int) bool {
-                firstVal, _ := strconv.Atoi(parseCatalog()[ind].Id)
-                secondVal, _ := strconv.Atoi(req.Id)
-                return firstVal >= secondVal })
+	dbprods := mongoConn.Database("mydb").Collection("products")
 
-        if (i < len(parseCatalog()) && parseCatalog()[i].Id == req.Id) {
 
-        	log.Info(fmt.Sprintf("Found at index: %d", i))
-                found = true
-        } else {
+	err := dbprods.FindOne(context.TODO(), bson.D{{"id", req.Id}}).Decode(&foundProd)
 
-//              log.Info("Product Not Found")
-//              log.Info(fmt.Sprintf("index: %d", i))
+	if err == nil {
+		found = true
+	}
+
+        if err != nil {
+		if err == mongo.ErrNoDocuments {
+			found = false
+		} else {
+			log.Info(err)
+		}
         }
-
 
         if found == true {
 		log.Info("Product already exists")
@@ -196,12 +220,14 @@ func AddNewProduct(req *pb.ProductNew) (error) {
                         PriceUsd: req.PriceUsd,
                         Categories: req.Categories}
 
-	err := insertProduct(i, freshProd)
-
+	_, err = dbprods.InsertOne(context.TODO(), freshProd)
 
 	if (err != nil) {
-		log.Info("product added successfully")
+		log.Info(err)
+		return err
         }
+
+
 
 	strSku, _ := strconv.Atoi(req.Id)
 
@@ -222,7 +248,6 @@ func AddNewProduct(req *pb.ProductNew) (error) {
 
 		log.Info("Message sent to RabbitMQ successfully")
 	}
-
 
 	log.Info(fmt.Sprintf("%+v", req))
 

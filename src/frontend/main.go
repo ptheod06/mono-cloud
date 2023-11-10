@@ -22,6 +22,8 @@ import (
 	"time"
 	"sync"
 
+	"go.mongodb.org/mongo-driver/mongo"
+
 	"github.com/redis/go-redis/v9"
 	"cloud.google.com/go/profiler"
 	"github.com/gorilla/mux"
@@ -55,6 +57,8 @@ var (
 		"JPY": true,
 		"GBP": true,
 		"TRY": true}
+
+	mongoConn *mongo.Client
 )
 
 var rClient *redis.Client
