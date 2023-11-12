@@ -11,7 +11,7 @@ import (
 	"sync"
 	"bytes"
 	"context"
-//	"time"
+	"time"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto"
 
@@ -56,7 +56,7 @@ func readCatalogFile(catalog *pb.ListProductsResponse) error {
 
 
 
-	var dbProducts []interface{}
+//	var dbProducts []interface{}
 
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://mongodb:27017"))
@@ -73,7 +73,7 @@ func readCatalogFile(catalog *pb.ListProductsResponse) error {
 	indexModel := mongo.IndexModel{
 	    Keys: bson.D{{"id", 1}}}
 
-
+/*
 	for _, item := range catalog.Products {
 		dbProducts = append(dbProducts, item)
 	}
@@ -84,6 +84,7 @@ func readCatalogFile(catalog *pb.ListProductsResponse) error {
         	panic(err)
 	}
 
+*/
 	_, err = dbprods.Indexes().CreateOne(context.TODO(), indexModel)
         if err != nil {
                 panic(err)
@@ -144,10 +145,14 @@ func GetProduct(req *pb.GetProductRequest) (*pb.Product, error) {
 //	}
 
 
+	start := time.Now()
 
 	dbprods := mongoConn.Database("mydb").Collection("products")
 
 	err := dbprods.FindOne(context.TODO(), bson.D{{"id", req.Id}}).Decode(&found)
+
+	end := time.Since(start)
+	log.Info(end)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
