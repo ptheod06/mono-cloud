@@ -85,6 +85,7 @@ func readCatalogFile(catalog *pb.ListProductsResponse) error {
 	}
 
 */
+
 	_, err = dbprods.Indexes().CreateOne(context.TODO(), indexModel)
         if err != nil {
                 panic(err)
