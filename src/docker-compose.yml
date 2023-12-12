@@ -1,12 +1,5 @@
 version: "3"
 services:
-  rabbitmq:
-    image: rabbitmq
-    container_name: 'gcloud_app_rabbitmq'
-    ports:
-      - "5672:5672"
-    restart: always
-
   frontend:
     build: ./frontend/
 #    image: gcr.io/google-samples/microservices-demo/frontend:v0.5.1
@@ -23,56 +16,6 @@ services:
       - CURRENCY_SERVICE_ADDR=currencyservice:7000
     restart: always
 
-
-  recommendationservice:
-    build: ./recommendationservice/
-#    image: gcr.io/google-samples/microservices-demo/recommendationservice:v0.5.2
-    depends_on:
-      - rabbitmq
-    container_name: 'gcloud_app_recommend'
-    ports:
-      - "8080:8080"
-    environment:
-      - PORT=8080
-      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550
-      - DISABLE_PROFILER="1"
-    restart: always
-
-#Services
-
-  shippingservice:
-    build: ./shippingservice/
-#    image: gcr.io/google-samples/microservices-demo/shippingservice:v0.5.2
-    container_name: 'gcloud_app_shipping'
-    ports:
-      - "50051:50051"
-    environment:
-      - PORT=50051
-      - DISABLE_PROFILER="1"
-    restart: always
-
-  emailservice:
-    build: ./emailservice/
-#    image: gcr.io/google-samples/microservices-demo/emailservice:v0.5.2
-    container_name: 'gcloud_app_email'
-    ports:
-      - "5000:8080"
-    environment:
-      - PORT=8080
-      - DISABLE_PROFILER="1"
-    restart: always
-
-  paymentservice:
-    build: ./paymentservice/
-#    image: gcr.io/google-samples/microservices-demo/paymentservice:v0.5.2
-    container_name: 'gcloud_app_payment'
-    ports:
-      - "50060:50060"
-    environment:
-      - PORT=50060
-      - DISABLE_PROFILER="1"
-    restart: always
-
   redis-cach:
 #    build: .
     image: redis:alpine
@@ -81,18 +24,3 @@ services:
       - "6379:6379"
     restart: always
 
-  checkoutservice:
-    build: ./checkoutservice/
-#    image: gcr.io/google-samples/microservices-demo/checkoutservice:v0.5.2
-    container_name: 'gcloud_app_checkout'
-    ports:
-      - "5050:5050"
-    environment:
-      - PORT=5050
-      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550
-      - SHIPPING_SERVICE_ADDR=shippingservice:50051
-      - PAYMENT_SERVICE_ADDR=paymentservice:50060
-      - EMAIL_SERVICE_ADDR=emailservice:5000
-      - CURRENCY_SERVICE_ADDR=currencyservice:7000
-      - CART_SERVICE_ADDR=cartserv:7070
-    restart: always

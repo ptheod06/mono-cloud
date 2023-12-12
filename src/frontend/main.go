@@ -62,8 +62,6 @@ var rClient *redis.Client
 type ctxKeySessionID struct{}
 
 type frontendServer struct {
-	adSvcAddr string
-	adSvcConn *grpc.ClientConn
 
 	collectorAddr string
 	collectorConn *grpc.ClientConn
@@ -108,9 +106,6 @@ func main() {
 		srvPort = os.Getenv("PORT")
 	}
 	addr := os.Getenv("LISTEN_ADDR")
-	mustMapEnv(&svc.adSvcAddr, "AD_SERVICE_ADDR")
-
-	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
 
 
 	catalogMutex = &sync.Mutex{}
