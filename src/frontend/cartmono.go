@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+//	"fmt"
 //	"net"
 //	"os"
 //	"time"
@@ -28,7 +28,7 @@ import (
 
 func AddItem(in *pb.AddItemRequest) (*pb.Empty, error) {
 
-	fmt.Println("Got Add Item request");
+//	fmt.Println("Got Add Item request");
 
 //	log.Infof("Session: %s", in.UserId)
 
@@ -90,7 +90,7 @@ func AddItem(in *pb.AddItemRequest) (*pb.Empty, error) {
 
 func GetCart(in *pb.GetCartRequest) (*pb.Cart, error) {
 
-	fmt.Println("Got Get cart request from MONO!!!");
+//	fmt.Println("Got Get cart request from MONO!!!");
 
 	redisCtx := context.Background()
 
@@ -112,7 +112,7 @@ func GetCart(in *pb.GetCartRequest) (*pb.Cart, error) {
 
 func EmptyCart(in *pb.EmptyCartRequest) (*pb.Empty, error) {
 
-	fmt.Println("Got empty cart request");
+//	fmt.Println("Got empty cart request");
 
 	redisCtx := context.Background()
 

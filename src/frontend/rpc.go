@@ -17,7 +17,7 @@ package main
 import (
 //	"context"
 //	"time"
-	"fmt"
+//	"fmt"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto"
 
@@ -29,7 +29,7 @@ const (
 )
 
 func (fe *frontendServer) getCurrencies() ([]string, error) {
-	fmt.Println("Calling all currencies")
+//	fmt.Println("Calling all currencies")
 	currs, err := getAllCurrencies()
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (fe *frontendServer) addProduct(money *pb.Money, id, name, desc, img string
 }
 
 func (fe *frontendServer) getCart(userID string) ([]*pb.CartItem, error) {
-	fmt.Println("get cart from mono requested!")
+//	fmt.Println("get cart from mono requested!")
 	resp, err := GetCart(&pb.GetCartRequest{UserId: userID})
 	return resp.GetItems(), err
 }
