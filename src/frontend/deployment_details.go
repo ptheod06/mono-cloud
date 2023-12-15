@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"io"
 
 	"cloud.google.com/go/compute/metadata"
 	"github.com/sirupsen/logrus"
@@ -21,6 +22,7 @@ func init() {
 
 func initializeLogger() {
 	log = logrus.New()
+	log.SetOutput(io.Discard)
 	log.Level = logrus.DebugLevel
 	log.Formatter = &logrus.JSONFormatter{
 		FieldMap: logrus.FieldMap{
@@ -30,7 +32,7 @@ func initializeLogger() {
 		},
 		TimestampFormat: time.RFC3339Nano,
 	}
-	log.Out = os.Stdout
+//	log.Out = os.Stdout
 }
 
 func loadDeploymentDetails() {

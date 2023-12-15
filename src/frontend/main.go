@@ -21,6 +21,7 @@ import (
 	"os"
 	"time"
 	"sync"
+	"io"
 
 	"github.com/redis/go-redis/v9"
 	"cloud.google.com/go/profiler"
@@ -79,7 +80,7 @@ func main() {
 		},
 		TimestampFormat: time.RFC3339Nano,
 	}
-	log.Out = os.Stdout
+	log.SetOutput(io.Discard)
 
 	svc := new(frontendServer)
 

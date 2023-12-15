@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+//	"fmt"
 	//"math"
 	"strconv"
 	"strings"
@@ -19,7 +19,7 @@ import (
 
 func Charge(in *pb.ChargeRequest) (*pb.ChargeResponse, error) {
 
-	fmt.Println("Got Charge request");
+//	fmt.Println("Got Charge request");
 
 	cardYear := strconv.Itoa(int(in.CreditCard.CreditCardExpirationYear))
 	cardMonth := strconv.Itoa(int(in.CreditCard.CreditCardExpirationMonth))
